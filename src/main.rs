@@ -1,3 +1,7 @@
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
 use serde::Deserialize;
 
 #[derive(Deserialize,Debug)]
@@ -34,7 +38,18 @@ fn funding_rate() -> f32 {
 }
 
 fn main() {
-    let funding = funding_rate();
-    println!("{:?}%", funding * 100.0);
+    let (tx, rx): (Sender<i32>, Receiver<i32>) = mpsc::channel();
 
+    thread::spawn(move || {
+        loop {
+            tx.send(1).unwrap();
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+
+    loop {
+        rx.recv().unwrap();
+        let funding = funding_rate();
+        println!("{:?}%", funding * 100.0);
+    }
 }
