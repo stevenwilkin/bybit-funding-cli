@@ -27,7 +27,7 @@ fn funding_rate() -> f32 {
     let payload: Payload = serde_json::from_reader(res).expect("Failed to parse response");
 
     if payload.result.list.len() != 1 {
-        eprintln!("Expected a single element");
+        panic!("Expected a single element");
     }
 
     payload.result.list[0].funding_rate.parse().expect("Failed to parse funding rate")
