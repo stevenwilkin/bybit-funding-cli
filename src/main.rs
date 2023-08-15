@@ -50,6 +50,7 @@ fn main() {
     loop {
         rx.recv().unwrap();
         let funding = funding_rate();
-        println!("{:?}%", funding * 100.0);
+        println!("\x1b[2J\x1b[H\x1b[?25l");   // clear screen, move cursor to top of screen, hide cursor
+        println!("  {:?}%", funding * 100.0);
     }
 }
