@@ -17,7 +17,7 @@ struct Ticker {
     funding_rate: String,
 }
 
-fn main() {
+fn funding_rate() -> f32 {
     let url = reqwest::Url::parse_with_params(
         "https://api.bybit.com/v5/market/tickers",
         &[("category", "inverse"), ("symbol", "BTCUSD")]
@@ -30,7 +30,11 @@ fn main() {
         eprintln!("Expected a single element");
     }
 
-    let funding: f32 = payload.result.list[0].funding_rate.parse().expect("Failed to parse funding rate");
+    payload.result.list[0].funding_rate.parse().expect("Failed to parse funding rate")
+}
 
+fn main() {
+    let funding = funding_rate();
     println!("{:?}%", funding * 100.0);
+
 }
