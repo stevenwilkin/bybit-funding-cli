@@ -21,23 +21,38 @@ struct Ticker {
     funding_rate: String,
 }
 
-fn funding_rate() -> f32 {
-    let url = reqwest::Url::parse_with_params(
-        "https://api.bybit.com/v5/market/tickers",
-        &[("category", "inverse"), ("symbol", "BTCUSD")]
-    ).expect("Can't generate URL");
+struct FundingRate {
+    client: reqwest::blocking::Client,
+    url: reqwest::Url,
+}
 
-    let res = reqwest::blocking::get(url).expect("Failed to GET url");
-    let payload: Payload = serde_json::from_reader(res).expect("Failed to parse response");
+impl FundingRate {
+    fn new() -> Self {
+        let url = reqwest::Url::parse_with_params(
+            "https://api.bybit.com/v5/market/tickers",
+            &[("category", "inverse"), ("symbol", "BTCUSD")]
+        ).expect("Can't generate URL");
 
-    if payload.result.list.len() != 1 {
-        panic!("Expected a single element");
+        Self {
+            client: reqwest::blocking::Client::new(),
+            url: url,
+        }
     }
 
-    payload.result.list[0].funding_rate.parse().expect("Failed to parse funding rate")
+    fn get(&self) -> f32 {
+        let res = self.client.get(self.url.clone()).send().expect("Failed to GET url");
+        let payload: Payload = serde_json::from_reader(res).expect("Failed to parse response");
+
+        if payload.result.list.len() != 1 {
+            panic!("Expected a single element");
+        }
+
+        payload.result.list[0].funding_rate.parse().expect("Failed to parse funding rate")
+    }
 }
 
 fn main() {
+    let funding_rate = FundingRate::new();
     let (tx, rx): (Sender<i32>, Receiver<i32>) = mpsc::channel();
 
     thread::spawn(move || {
@@ -49,7 +64,7 @@ fn main() {
 
     loop {
         rx.recv().unwrap();
-        let funding = funding_rate();
+        let funding = funding_rate.get();
         println!("\x1b[2J\x1b[H\x1b[?25l");   // clear screen, move cursor to top of screen, hide cursor
         println!("  {:?}%", funding * 100.0);
     }
