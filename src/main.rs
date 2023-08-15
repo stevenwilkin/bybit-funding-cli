@@ -40,7 +40,7 @@ impl FundingRate {
     }
 
     fn get(&self) -> f32 {
-        let res = self.client.get(self.url.clone()).send().expect("Failed to GET url");
+        let res = self.client.get(self.url.as_ref()).send().expect("Failed to GET url");
         let payload: Payload = serde_json::from_reader(res).expect("Failed to parse response");
 
         if payload.result.list.len() != 1 {
